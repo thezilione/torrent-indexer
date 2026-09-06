@@ -63,6 +63,7 @@ func parseInfohash(xt string) (ih T, err error) {
 		case 40:
 			return hex.Decode
 		case 32:
+			encoded = strings.ToUpper(encoded)
 			return base32.StdEncoding.Decode
 		}
 		return nil
