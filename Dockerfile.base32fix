@@ -1,0 +1,23 @@
+FROM golang:1.24.5@sha256:9aba206b3974f93f7056304c991c9cc1f843c939159d9305571ab9766c9ccdf6 AS builder
+
+WORKDIR /src
+
+COPY . .
+
+# Teste regressivo obrigatório do bug corrigido
+RUN go test ./magnet
+
+# Mesmo modelo de binário estático da imagem atual
+RUN CGO_ENABLED=0 \
+    GOOS=linux \
+    GOARCH=amd64 \
+    go build \
+    -o /out/torrent-indexer \
+    .
+
+# Runtime oficial atualmente em produção, pinado pelo digest
+FROM ghcr.io/felipemarinho97/torrent-indexer:0.15.2@sha256:d4d29ea4b2bf909b3f7d2a797c23db6abc187e302dee0f8e3feba9bc2a0dd09a
+
+COPY --from=builder /out/torrent-indexer /app/torrent-indexer
+
+ENTRYPOINT ["/app/torrent-indexer"]
